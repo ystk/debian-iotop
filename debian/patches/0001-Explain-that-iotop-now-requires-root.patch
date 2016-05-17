@@ -1,0 +1,33 @@
+From: Guillaume Chazarain <guichaz@gmail.com>
+Date: Sat, 15 Oct 2011 18:39:32 +0200
+Origin: upstream, http://repo.or.cz/w/iotop.git/commitdiff/635b5838e95ed85767434207e463173fd91b6040
+Bug-Debian: http://bugs.debian.org/644616
+Subject: Explain that iotop now requires root.
+ https://lkml.org/lkml/2011/10/1/170
+ http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=1a51410abe7d0ee4b1d112780f46df87d3621043
+--- a/iotop/ui.py
++++ b/iotop/ui.py
+@@ -446,10 +446,19 @@
+     ui.run()
+ 
+ def run_iotop(options):
+-    if options.batch:
+-        return run_iotop_window(None, options)
+-    else:
+-        return curses.wrapper(run_iotop_window, options)
++    try:
++        if options.batch:
++            return run_iotop_window(None, options)
++        else:
++            return curses.wrapper(run_iotop_window, options)
++    except OSError, e:
++        if e.errno == errno.EPERM:
++            print >> sys.stderr, e
++            print >> sys.stderr, ('iotop requires root or the NET_ADMIN '
++                                  'capability.')
++            sys.exit(1)
++        else:
++            raise
+ 
+ #
+ # Profiling
